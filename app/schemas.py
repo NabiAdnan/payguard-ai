@@ -63,6 +63,12 @@ class ScoreResponse(BaseModel):
     paypal: dict[str, Any]
     signals: dict[str, list[str]]
     top_features: list[str] = []
+    # Week 2 additions (all optional with defaults — Week 1 clients unaffected).
+    feature_contributions: list[dict[str, Any]] = []
+    contribution_method: str = ""
+    explanation: str = ""
+    explanation_source: str = "template"
+    recommendation: str = "review"
 
 
 class WebhookResponse(BaseModel):
@@ -72,3 +78,34 @@ class WebhookResponse(BaseModel):
     decision: str | None = None
     signature_verified: bool = False
     detail: str | None = None
+    # Week 2 additions: the scored transaction, when a capture was scored.
+    transaction_id: str | None = None
+    explanation: str | None = None
+    recommendation: str | None = None
+
+
+class DecisionRecord(BaseModel):
+    """One logged decision, as returned by the decision-log endpoints."""
+
+    id: str
+    created_at: str
+    amount: str
+    currency: str
+    payer_country: str | None = None
+    payer_email: str | None = None
+    risk_score: float
+    decision: str
+    explanation: str
+    explanation_source: str
+    recommendation: str
+    signals: dict[str, Any] = {}
+    top_features: list[str] = []
+    source: str
+    merchant_action: str | None = None
+    action_at: str | None = None
+
+
+class ActionRequest(BaseModel):
+    """Merchant review-queue action on a "Review" decision."""
+
+    action: str = Field(..., pattern="^(approve|block)$")
