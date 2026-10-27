@@ -45,7 +45,7 @@ scenarios, the < 3 min video, and the Devpost submission itself.
 | XGBoost risk model | ✅ Done | Retrained from the original gateway repo's dataset (see Model provenance) |
 | Top contributing features | ✅ Done | XGBoost native per-prediction contributions (`pred_contribs`, tree-SHAP approximation), aggregated from one-hot blocks back to the 35 raw features; falls back to global gain importances if contributions are unavailable, and the method used is reported in each response |
 | LLM explainer | ✅ Template live; LLM optional | `app/explainer.py`: one interface. Template explanations reference the real amount, payer country, time, and top features, and are labelled `source: "template"`. A real LLM (Gemini free tier / OpenAI) runs behind the same interface when a key is configured via the environment — see Setup |
-| Decision engine | ✅ Done | `app/decisions.py`; thresholds from the lifted config (Approve < 40, Review < 70, else Reject) |
+| Decision engine | ✅ Done | `app/decisions.py`; thresholds from the config (Approve < 30, Review < 70, else Reject — approve cut lowered from the lifted 40 to 30 on Oct 28 so borderline scores go to human review) |
 | Decision log | ✅ Done | SQLite at `data/payguard.db` (gitignored); every scored transaction logged with its explanation; review-queue actions via the API |
 | React dashboard | ✅ Done | `dashboard/` (Vite + React + TypeScript): live feed, detail view, review-queue approve/block, stats header |
 | Storage | ✅ SQLite | `data/payguard.db`; override with `PAYGUARD_DB_PATH` |
@@ -128,10 +128,11 @@ payer country, time, and top contributing features. It is never presented
 as LLM output.
 
 To enable the LLM path, set **one** of these in the environment (never in
-code or in a committed file):
+code or in a committed file). Gemini (free tier) is the project's chosen
+provider: when its key is present it is used by default.
 
 ```bash
-GOOGLE_API_KEY=...        # or GEMINI_API_KEY — Gemini free tier
+GOOGLE_API_KEY=...        # or GEMINI_API_KEY — Gemini free tier (chosen provider)
 OPENAI_API_KEY=...        # OpenAI
 LLM_PROVIDER=gemini       # optional: force a provider when both keys exist
 LLM_MODEL=...             # optional: override the default model

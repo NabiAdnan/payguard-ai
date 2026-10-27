@@ -15,7 +15,7 @@ MODEL_DIR = BASE_DIR / "model"
 # Risk thresholds / labels, lifted as-is from the original gateway repo's
 # backend/config/config.json. Scores are 0-100 (fraud probability percent).
 _DEFAULT_CONFIG = {
-    "risk_thresholds": {"approve": 40, "review": 70, "high": 90},
+    "risk_thresholds": {"approve": 30, "review": 70, "high": 90},
     "decisions": {"approve": "Approve", "review": "Review", "reject": "Reject"},
     "messages": {
         "approve": "Low fraud risk",

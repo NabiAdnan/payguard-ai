@@ -73,14 +73,15 @@ def test_explainer_config_is_template_without_keys(no_llm_keys):
     assert explainer_config() == {"mode": "template", "provider": None, "model": None}
 
 
-# --- Decision engine: thresholds verbatim from the lifted config ---------
+# --- Decision engine: thresholds from the config (approve < 30, chosen
+# Oct 28 over the lifted 40: borderline scores go to human review) --------
 
 @pytest.mark.parametrize(
     ("score", "decision", "confidence"),
     [
         (0.0, "Approve", "Low"),
-        (39.99, "Approve", "Low"),
-        (40.0, "Review", "Medium"),
+        (29.99, "Approve", "Low"),
+        (30.0, "Review", "Medium"),
         (69.99, "Review", "Medium"),
         (70.0, "Reject", "High"),
         (89.99, "Reject", "High"),
