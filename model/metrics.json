@@ -1,0 +1,14 @@
+{
+  "accuracy": 0.998,
+  "precision": 0.9263,
+  "recall": 0.7333,
+  "f1_score": 0.8186,
+  "roc_auc": 0.9977,
+  "test_size": 20000,
+  "train_size": 80000,
+  "fraud_rate": 0.006,
+  "trained_at": "2026-10-27T15:40:56.549080+00:00",
+  "source_dataset": "fraud_engineered.csv from NabiAdnan/AI-Powered-Payment-Gateway-with-Real-Time-Fraud-Detection-and-Risk-Scoring",
+  "recipe": "notebooks/03_Production_Pipeline.ipynb (same split seed, SMOTE seed, XGBoost hyperparameters)",
+  "note": "Retrained because the original .pkl artifacts were never committed (gitignored). Metrics above are this retrained model's holdout results, not the original model's reported figures."
+}
