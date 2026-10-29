@@ -138,7 +138,7 @@ LLM_PROVIDER=gemini       # optional: force a provider when both keys exist
 LLM_MODEL=...             # optional: override the default model
 ```
 
-Defaults: `gemini-1.5-flash` for Gemini, `gpt-4o-mini` for OpenAI. LLM
+Defaults: `gemini-3.8-flash` for Gemini, `gpt-4o-mini` for OpenAI. LLM
 results are cached per transaction (in memory). If the provider call fails
 for any reason, the template path runs instead and the source stays
 `"template"`. `GET /model-info` reports the current explainer mode

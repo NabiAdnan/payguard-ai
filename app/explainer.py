@@ -116,13 +116,13 @@ def _llm_provider() -> tuple[str, str] | None:
     if requested == "openai" and openai_key:
         return ("openai", os.environ.get("OPENAI_MODEL") or os.environ.get("LLM_MODEL") or "gpt-4o-mini")
     if requested == "gemini" and gemini_key:
-        return ("gemini", os.environ.get("GEMINI_MODEL") or os.environ.get("LLM_MODEL") or "gemini-1.5-flash")
+        return ("gemini", os.environ.get("GEMINI_MODEL") or os.environ.get("LLM_MODEL") or "gemini-3.8-flash")
     if requested:
         return None  # Requested provider has no key: template path, honestly.
     # No provider requested: Gemini (free tier) is the project's chosen
     # provider, so its key wins when both are configured.
     if gemini_key:
-        return ("gemini", os.environ.get("GEMINI_MODEL") or os.environ.get("LLM_MODEL") or "gemini-1.5-flash")
+        return ("gemini", os.environ.get("GEMINI_MODEL") or os.environ.get("LLM_MODEL") or "gemini-3.8-flash")
     if openai_key:
         return ("openai", os.environ.get("OPENAI_MODEL") or os.environ.get("LLM_MODEL") or "gpt-4o-mini")
     return None
