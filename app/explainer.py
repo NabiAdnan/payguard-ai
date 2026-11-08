@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sys
 from collections import OrderedDict
 from datetime import datetime, timezone
 
@@ -249,21 +250,54 @@ def _call_gemini(prompt: str, model: str, api_key: str) -> dict | None:
         "https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent"
     )
-    try:
-        response = httpx.post(
-            url,
-            params={"key": api_key},
-            json={"contents": [{"parts": [{"text": prompt}]}]},
-            timeout=15.0,
-        )
-        if response.status_code != 200:
-            return None
-        candidates = response.json().get("candidates") or []
-        parts = (candidates[0].get("content") or {}).get("parts") or []
-        text = "".join(p.get("text", "") for p in parts)
-    except (httpx.HTTPError, ValueError, KeyError, IndexError):
-        return None
-    return _parse_llm_json(text)
+    # Gemini 3.8 Flash thinks (MEDIUM by default) before answering, and on the
+    # free tier a call can take well over a minute — the old 15s/60s timeouts
+    # turned that into a silent template fallback. Ask for LOW thinking (the
+    # explanations are 2-3 sentences) and retry once on a timeout/error.
+    body = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"thinkingConfig": {"thinkingLevel": "LOW"}},
+    }
+    for attempt in (1, 2):
+        try:
+            response = httpx.post(
+                url,
+                params={"key": api_key},
+                json=body,
+                timeout=180.0,
+            )
+            if response.status_code != 200:
+                print(
+                    f"payguard: gemini call failed HTTP {response.status_code}: "
+                    f"{response.text[:200]}",
+                    file=sys.stderr,
+                )
+                return None
+            candidates = response.json().get("candidates") or []
+            parts = (candidates[0].get("content") or {}).get("parts") or []
+            text = "".join(p.get("text", "") for p in parts)
+            if not text.strip():
+                finish = candidates[0].get("finishReason") if candidates else None
+                print(
+                    "payguard: gemini returned no text "
+                    f"(candidates={len(candidates)}, finish={finish})",
+                    file=sys.stderr,
+                )
+                return None
+        except (httpx.HTTPError, ValueError, KeyError, IndexError) as exc:
+            print(
+                f"payguard: gemini call error (attempt {attempt}/2): "
+                f"{type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+            if attempt == 2:
+                return None
+            continue
+        parsed = _parse_llm_json(text)
+        if parsed is None:
+            print(f"payguard: gemini reply was not JSON: {text[:200]!r}", file=sys.stderr)
+        return parsed
+    return None
 
 
 def _call_openai(prompt: str, model: str, api_key: str) -> dict | None:
@@ -279,12 +313,18 @@ def _call_openai(prompt: str, model: str, api_key: str) -> dict | None:
                 ],
                 "response_format": {"type": "json_object"},
             },
-            timeout=15.0,
+            timeout=60.0,
         )
         if response.status_code != 200:
+            print(
+                f"payguard: openai call failed HTTP {response.status_code}: "
+                f"{response.text[:200]}",
+                file=sys.stderr,
+            )
             return None
         content = response.json()["choices"][0]["message"]["content"]
-    except (httpx.HTTPError, ValueError, KeyError, IndexError):
+    except (httpx.HTTPError, ValueError, KeyError, IndexError) as exc:
+        print(f"payguard: openai call error: {type(exc).__name__}: {exc}", file=sys.stderr)
         return None
     return _parse_llm_json(content)
 
