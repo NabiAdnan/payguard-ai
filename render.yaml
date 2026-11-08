@@ -1,0 +1,36 @@
+# PayGuard AI — Render Blueprint (one public demo link for the Devpost submission).
+# Apply in the Render dashboard: New > Blueprint > connect the repo > it will
+# create both services below. Secrets are marked sync: false, so Render asks
+# for their values in the dashboard — they are never stored in this file.
+# The static site's VITE_API_URL uses the backend's predictable Render URL,
+# so keep the backend service name exactly "payguard-ai-backend".
+
+services:
+  - type: web
+    name: payguard-ai-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: PAYPAL_MODE
+        value: sandbox
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: CORS_ORIGINS
+        value: https://payguard-ai.onrender.com
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+  - type: static
+    name: payguard-ai
+    buildCommand: cd dashboard && npm install && npm run build
+    staticPublishPath: dashboard/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://payguard-ai-backend.onrender.com
