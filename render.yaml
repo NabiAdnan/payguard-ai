@@ -27,8 +27,9 @@ services:
       - key: GEMINI_API_KEY
         sync: false
 
-  - type: static
+  - type: web
     name: payguard-ai
+    env: static
     buildCommand: cd dashboard && npm install && npm run build
     staticPublishPath: dashboard/dist
     envVars:
